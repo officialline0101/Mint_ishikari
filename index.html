@@ -294,8 +294,6 @@
             <button type="button" onclick="showMenu('whitening')">プレックスカラー</button>
         </div>
 
-        <div id="treatment-text" style="margin-bottom: 20px;"></div>
-
         <div id="male" class="menu-section">
             <div class="highlight-background">
                 <span class="highlight-text">◆ノーマルカラー◆</span>
@@ -496,8 +494,6 @@
         <p>${totalTimeText}</p>
         <hr>
         <p>${selectedDateText}</p>
-        <hr>
-        <p>${totalAmountText}</p>
         <hr>
     `;
         }
@@ -794,7 +790,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const url = 'https://script.google.com/macros/s/AKfycbwCxnJaxGZ46c3TnnesuZcD_zuxuVoSHoDHo5MxkRzChcK5vZDwBs4HstzkXO-KLyuDYA/exec' +
+            const url = 'https://script.google.com/macros/s/AKfycbw5Pw47rQ6bl96fc2SDlcEFPezV1edqah9cExZ6xKwnW-NLELTVJDLvdWWaY6_2fZIf/exec' +
                 `?startTime=${startTime.toISOString()}&endTime=${endTime.toISOString()}`;
 
             try {
