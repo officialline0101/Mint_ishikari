@@ -297,7 +297,6 @@
                 /* テキストの高さ調整 */
             }
         }
-
     </style>
 </head>
 
@@ -338,16 +337,13 @@
                 <span class="highlight-text">オプション</span>
             </div>
             <div class="irradiations">
-                <button type="button" id="firstirradiations" onclick="selectirradiations(this)"
-                    data-price="15000">アルカリ除去 （後処理）</button>
+                <button type="button" id="firstirradiations" onclick="selectirradiations(this)" data-price="15000">アルカリ除去 （後処理）</button>
                 <button type="button" id="repeatirradiations" onclick="selectirradiations(this)"
                     data-price="15000">プレックス（前・後処理付）</button>
-                <button type="button" id="sanirradiations" onclick="selectirradiations(this)"
-                    data-price="15000">コラーゲン（前処理付）</button>
+                <button type="button" id="sanirradiations" onclick="selectirradiations(this)" data-price="15000">コラーゲン（前処理付）</button>
                 <button type="button" id="repeatirradiations" onclick="selectirradiations(this)"
                     data-price="15000">カラーケアトリートメント</button>
-                <button type="button" id="sanirradiations" onclick="selectirradiations(this)"
-                    data-price="15000">頭皮保護ガード</button>
+                <button type="button" id="sanirradiations" onclick="selectirradiations(this)" data-price="15000">頭皮保護ガード</button>
             </div>
         </div>
 
@@ -386,10 +382,12 @@
                 <span class="highlight-text">オプション</span>
             </div>
             <div class="irradiations">
-                <button type="button" id="firstirradiations" onclick="selectirradiations(this)" data-price="15000">アルカリ除去 （後処理）</button>
+                <button type="button" id="firstirradiations" onclick="selectirradiations(this)"
+                    data-price="15000">アルカリ除去 （後処理）</button>
                 <button type="button" id="repeatirradiations" onclick="selectirradiations(this)"
                     data-price="15000">カラーケアトリートメント</button>
-                <button type="button" id="sanirradiations" onclick="selectirradiations(this)" data-price="15000">頭皮保護ガード</button>
+                <button type="button" id="sanirradiations" onclick="selectirradiations(this)"
+                    data-price="15000">頭皮保護ガード</button>
             </div>
         </div>
 
@@ -447,7 +445,7 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             liff.init({
-                liffId: '2001302547-NXrj0kn9'
+                liffId: '2005254357-zKma9BZk'
             }).then(() => {
                 console.log('LIFF初期化成功');
             }).catch((err) => {
@@ -477,18 +475,17 @@
         let selectedirradiationsTime = 0; // 訪問回数で選択された時間
 
         let menuTimes = {
-            '根元染め': 0,
-            '全体染め': 0,
-            '全体染め ロング': 0,
-            '部分根元染め': 0,
-            'コラーゲンカラー根元染め': 0,
-            'コラーゲンカラー全体染め': 0,
-            'コラーゲンカラー全体染め ロング': 0,
-            'プレックスカラー根元染め': 0,
-            'プレックスカラー全体染め': 0,
-            'プレックスカラー全体染め ロング': 0
+            '根元染め': 1,
+            '全体染め': 1,
+            '全体染め ロング': 1,
+            '部分根元染め': 1,
+            'コラーゲンカラー根元染め': 1,
+            'コラーゲンカラー全体染め': 1,
+            'コラーゲンカラー全体染め ロング': 1,
+            'プレックスカラー根元染め': 1,
+            'プレックスカラー全体染め': 1,
+            'プレックスカラー全体染め ロング': 1
         };
-
 
         let selectedMenuTime = 0;
 
@@ -529,8 +526,6 @@
         <p>${selectedSymptomText}</p>
         <hr>
         <p>${irradiationsText}</p>
-        <hr>
-        <p>${totalTimeText}</p>
         <hr>
         <p>${selectedDateText}</p>
         <hr>
@@ -829,7 +824,7 @@
                 return;
             }
 
-            const url = 'https://script.google.com/macros/s/AKfycbw3BDynN6sA-Te-SLwMUD21Yb_VzAz0hZOYY5-e5AR9hcOEGdigAKXjV-8xPW7FpZCv/exec' +
+            const url = 'https://script.google.com/macros/s/AKfycby530-poI9BynaLlAtK_7q4ym4WWtzdfpYVVazO87e8yiZDpXlHDnqaroFpLcBtp9I/exec' +
                 `?startTime=${startTime.toISOString()}&endTime=${endTime.toISOString()}`;
 
             try {
@@ -862,15 +857,13 @@
             const table = calendar.querySelector('table tbody');
 
             const times = [
-                '09:00', '09:20', '09:30', '09:50',
-                '10:20', '10:40', '10:50', '11:20', '11:40',
-                '12:00', '12:20', '12:30',
-                '13:00', '13:20', '13:30',
-                '13:50', '14:20', '14:40', '14:50',
+                '09:00', '09:20',
+                '10:20', '10:40', '11:20', '11:40',
+                '12:00', '12:20',
+                '13:00', '13:20', '14:20', '14:40',
                 '15:20', '15:40',
                 '16:00', '16:20'
             ];
-
 
             if (table.rows.length === 0) {
                 for (const time of times) {
@@ -932,7 +925,7 @@
                     slotStart.setHours(parseInt(times[j].split(':')[0]), parseInt(times[j].split(':')[1]), 0, 0);
 
                     const slotEnd = new Date(slotStart);
-                    let menuDuration = selectedMenuTime || 10;
+                    let menuDuration = selectedMenuTime || 0;
                     let visitDuration = selectedVisitTime || 0;
                     let irradiationsDuration = selectedirradiationsTime || 0;
 
@@ -979,6 +972,11 @@
                         cell.textContent = '✕';
                         cell.classList.add('unavailable');
                     }
+                    // 土曜日以外のすべての曜日で15時20分は利用不可
+                    else if (slotStart.getHours() === 15 && slotStart.getMinutes() === 20 && slotStart.getDay() !== 6) {
+                        cell.textContent = '✕';
+                        cell.classList.add('unavailable');
+                    }
                     // 休日（日曜日）で、ビジネスデーでない場合
                     else if (slotStart.getDay() === 0 && !isBusinessDay && businessEventTimes.length === 0) {
                         cell.textContent = '✕'; // 休日のため利用不可
@@ -1000,7 +998,7 @@
                         cell.classList.add('available');
                     }
                     // それ以外の条件
-                    else if (count <= 2) {
+                    else if (count <= 1) {
                         cell.textContent = '◯';
                         cell.classList.add('available');
                     } else {
