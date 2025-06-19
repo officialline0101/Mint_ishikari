@@ -297,6 +297,86 @@
                 /* テキストの高さ調整 */
             }
         }
+
+.info-textnomal {
+    margin-top: 0px; /* 上の余白 */
+    margin-bottom: 0px; /* 下に白い隙間を追加 */
+    font-size: 16px; /* 見やすいサイズに調整 */
+    color: #000000;
+    line-height: 1.6; /* 行間を少し広げる */
+    text-align: center;
+    word-wrap: break-word;
+    background-color: #eef9f5; /* 青っぽい背景色を追加 */
+    padding: 12px; /* 余白もやや広げて読みやすく */
+    border-radius: 4px;
+    width: 100%; /* 横幅を横一杯に */
+    box-sizing: border-box; /* パディング含めて横一杯に */
+}
+
+/* 携帯端末向けのレスポンシブデザイン */
+@media (max-width: 768px) {
+    .info-textnomal {
+        font-size: 14px; /* スマホでも見やすいサイズに調整 */
+        margin-top: 0px; /* 上下のマージンを調整 */
+        line-height: 1.1; /* 行間を少し広げて読みやすく */
+        width: 100%; /* 横幅を横一杯に */
+        box-sizing: border-box; /* パディング含めて横一杯に */
+    }
+}
+
+/* 基本スタイル */
+.info-textnomal {
+    margin: 20px 0;
+    font-family: "Noto Sans JP", "Roboto", sans-serif;
+    font-size: 14px;
+    color: #333; /* 読みやすい濃い文字色 */
+    background-color: #f8f9fa;
+    line-height: 1.8;
+    text-align: left;
+    word-wrap: break-word;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    max-width: 800px; /* 横幅制限 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 軽い影を追加 */
+    overflow-y: auto; /* 長文スクロール対応 */
+}
+
+/* 見出しスタイル */
+.info-textnomal h1 {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.info-textnomal h2 {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 8px;
+}
+
+/* 強調テキスト */
+.info-textnomal strong {
+    color: #007bff;
+}
+
+/* モバイル向け調整 */
+@media (max-width: 768px) {
+    .info-textnomal {
+        font-size: 15px;
+        padding: 15px;
+        max-width: 100%;
+    }
+
+    .info-textnomal h1 {
+        font-size: 16px;
+    }
+
+    .info-textnomal h2 {
+        font-size: 14px;
+    }
+}
     </style>
 </head>
 
@@ -328,6 +408,7 @@
                 <span class="highlight-text">◆ノーマルカラー◆</span>
             </div>
             <div class="symptoms">
+                <div class="info-textnomal">⚫︎2cm以上伸びている方は<br>全体染め(2cm以上の根元染め)をご選択ください</div>
                 <button type="button" onclick="selectSymptom(this)" data-price="15000">根元染め</button>
                 <button type="button" onclick="selectSymptom(this)" data-price="15000">全体染め</button>
                 <button type="button" onclick="selectSymptom(this)" data-price="15000">全体染め ロング</button>
@@ -352,6 +433,7 @@
                 <span class="highlight-text">◆コラーゲンカラー◆</span>
             </div>
             <div class="symptoms">
+                <div class="info-textnomal">⚫︎2cm以上伸びている方は<br>全体染め(2cm以上の根元染め)をご選択ください</div>
                 <button type="button" onclick="selectSymptom(this)" data-price="15000">コラーゲンカラー根元染め</button>
                 <button type="button" onclick="selectSymptom(this)" data-price="15000">コラーゲンカラー全体染め</button>
                 <button type="button" onclick="selectSymptom(this)" data-price="15000">コラーゲンカラー全体染め ロング</button>
@@ -374,6 +456,7 @@
                 <span class="highlight-text">◆プレックスカラー◆</span>
             </div>
             <div class="symptoms">
+                <div class="info-textnomal">⚫︎2cm以上伸びている方は<br>全体染め(2cm以上の根元染め)をご選択ください</div>
                 <button type="button" onclick="selectSymptom(this)" data-price="15000">プレックスカラー根元染め</button>
                 <button type="button" onclick="selectSymptom(this)" data-price="15000">プレックスカラー全体染め</button>
                 <button type="button" onclick="selectSymptom(this)" data-price="15000">プレックスカラー全体染め ロング</button>
