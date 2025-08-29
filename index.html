@@ -1564,16 +1564,15 @@ if (savedGender) {
                         continue;
                     }
 
-                    // 30分後の時間を計算
-                    const nowPlus30 = new Date(now.getTime() + 30 * 60 * 1000);
+// 20分後の時間を計算
+const nowPlus20 = new Date(now.getTime() + 20 * 60 * 1000);
 
-                    // ここで終了時間を使った条件処理を行う
-                    // リアルタイムで+30分後までの時間帯を×にする
-                    if (slotStart < nowPlus30) {
-                        cell.textContent = '✕';
-                        cell.classList.add('unavailable');
-                        continue;
-                    }
+// リアルタイムで+20分後までの時間帯を×にする
+if (slotStart < nowPlus20) {
+    cell.textContent = '✕';
+    cell.classList.add('unavailable');
+    continue;
+}
 
                     const isBusinessDay = businessDays.some(businessDay => {
                         const businessDayStart = new Date(businessDay.start);
