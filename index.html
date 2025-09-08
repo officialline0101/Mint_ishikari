@@ -1519,80 +1519,88 @@ if (savedGender) {
                 }
             }
 
+// 現在の日時を取得
+const now = new Date();
 
-            // 現在の日時を取得
-            const now = new Date();
+// テーブルの内容を更新
+for (let i = 0; i < 7; i++) {
+    const day = new Date(currentDate);
+    day.setDate(day.getDate() + i);
 
-            // テーブルの内容を更新
-            for (let i = 0; i < 7; i++) {
-                const day = new Date(currentDate);
-                day.setDate(day.getDate() + i);
+    let businessEventTimes = []; // 営業日のイベント時間帯を記録する配列
 
-                let businessEventTimes = []; // 営業日のイベント時間帯を記録する配列
+    availability.forEach(slot => {
+        const eventStart = new Date(slot.startTime);
+        const eventEnd = new Date(slot.endTime);
+        if (eventStart.toDateString() === day.toDateString() && slot.title === "営業日") {
+            businessEventTimes.push({ start: eventStart, end: eventEnd });
+        }
+    });
 
-                availability.forEach(slot => {
-                    const eventStart = new Date(slot.startTime);
-                    const eventEnd = new Date(slot.endTime);
-                    if (eventStart.toDateString() === day.toDateString() && slot.title === "営業日") {
-                        businessEventTimes.push({ start: eventStart, end: eventEnd });
-                    }
-                });
+    for (let j = 0; j < times.length; j++) {
+        const cell = table.rows[j].cells[i + 1];
 
-                for (let j = 0; j < times.length; j++) {
-                    const cell = table.rows[j].cells[i + 1];
+        // すでにセルが✕の場合はスキップする
+        if (cell.textContent === '✕') {
+            continue;
+        }
 
-                    // すでにセルが✕の場合はスキップする
-                    if (cell.textContent === '✕') {
-                        continue;
-                    }
+        const slotStart = new Date(day);
+        slotStart.setHours(parseInt(times[j].split(':')[0]), parseInt(times[j].split(':')[1]), 0, 0);
 
-                    const slotStart = new Date(day);
-                    slotStart.setHours(parseInt(times[j].split(':')[0]), parseInt(times[j].split(':')[1]), 0, 0);
+        const slotEnd = new Date(slotStart);
+        let menuDuration = selectedMenuTime || 0;
+        let visitDuration = selectedVisitTime || 0;
+        let irradiationsDuration = selectedirradiationsTime || 0;
 
-                    const slotEnd = new Date(slotStart);
-                    let menuDuration = selectedMenuTime || 0;
-                    let visitDuration = selectedVisitTime || 0;
-                    let irradiationsDuration = selectedirradiationsTime || 0;
+        // メニュー時間と訪問回数の時間を合計して、終了時間を設定
+        slotEnd.setMinutes(slotStart.getMinutes() + menuDuration + visitDuration + irradiationsDuration);
 
-                    // メニュー時間と訪問回数の時間を合計して、終了時間を設定
-                    slotEnd.setMinutes(slotStart.getMinutes() + menuDuration + visitDuration + irradiationsDuration);
+        // 終了時間が翌日 (0時以降) になる場合は✕に設定
+        if (slotEnd.getDate() !== slotStart.getDate()) {
+            cell.textContent = '✕';
+            cell.classList.add('unavailable');
+            continue;
+        }
 
-                    // 終了時間が翌日 (0時以降) になる場合は✕に設定
-                    if (slotEnd.getDate() !== slotStart.getDate()) {
-                        cell.textContent = '✕';
-                        cell.classList.add('unavailable');
-                        continue;
-                    }
+        // 20分後の時間を計算
+        const nowPlus20 = new Date(now.getTime() + 20 * 60 * 1000);
 
-// 20分後の時間を計算
-const nowPlus20 = new Date(now.getTime() + 20 * 60 * 1000);
+        // リアルタイムで+20分後までの時間帯を✕にする
+        if (slotStart < nowPlus20) {
+            cell.textContent = '✕';
+            cell.classList.add('unavailable');
+            continue;
+        }
 
-// リアルタイムで+20分後までの時間帯を×にする
-if (slotStart < nowPlus20) {
-    cell.textContent = '✕';
-    cell.classList.add('unavailable');
-    continue;
-}
+        // 30日後以降は✕にする
+        const limitDate = new Date(now);
+        limitDate.setDate(limitDate.getDate() + 30);
+        if (slotStart > limitDate) {
+            cell.textContent = '✕';
+            cell.classList.add('unavailable');
+            continue;
+        }
 
-                    const isBusinessDay = businessDays.some(businessDay => {
-                        const businessDayStart = new Date(businessDay.start);
-                        const businessDayEnd = new Date(businessDay.end);
-                        return slotStart >= businessDayStart && slotEnd <= businessDayEnd;
-                    });
+        const isBusinessDay = businessDays.some(businessDay => {
+            const businessDayStart = new Date(businessDay.start);
+            const businessDayEnd = new Date(businessDay.end);
+            return slotStart >= businessDayStart && slotEnd <= businessDayEnd;
+        });
 
-                    const isBusinessEventTime = businessEventTimes.some(event => {
-                        return slotStart < event.end && event.start < slotEnd;
-                    });
+        const isBusinessEventTime = businessEventTimes.some(event => {
+            return slotStart < event.end && event.start < slotEnd;
+        });
 
-                    const count = availability.reduce((acc, slot) => {
-                        const eventStart = new Date(slot.startTime);
-                        const eventEnd = new Date(slot.endTime);
+        const count = availability.reduce((acc, slot) => {
+            const eventStart = new Date(slot.startTime);
+            const eventEnd = new Date(slot.endTime);
 
-                        if (eventStart < slotEnd && slotStart < eventEnd && slot.title !== "営業日") {
-                            return acc + 1;
-                        }
-                        return acc;
-                    }, 0);
+            if (eventStart < slotEnd && slotStart < eventEnd && slot.title !== "営業日") {
+                return acc + 1;
+            }
+            return acc;
+        }, 0);
 
                     // 営業日のイベント時間内に他のイベントがある場合
                     if (isBusinessEventTime && count > 0) {
