@@ -195,6 +195,10 @@
             margin-bottom: 20px;
         }
 
+        .menu-sections {
+            flex-direction: column;
+        }
+
         .visit-buttons button,
         .symptoms button,
         .menu-sections button,
@@ -818,16 +822,19 @@
 
         <div class="label">ご来店回数<span class="required">必須</span></div>
         <div class="visit-buttons">
-            <button type="button" id="firstVisit" onclick="selectVisit(this)">1回目</button>
-            <button type="button" id="repeatVisit" onclick="selectVisit(this)">2回目以降</button>
+            <button type="button" id="firstVisit" onclick="selectVisit(this)">初回</button>
+            <button type="button" id="secondVisit" onclick="selectVisit(this)">2回目</button>
+            <button type="button" id="repeatVisit" onclick="selectVisit(this)">3回目以降</button>
         </div>
 
         <div class="label" id="course">メニューをお選びください<span class="required">必須</span></div>
         <div class="info-text">※メニューを選択すると空き状況のカレンダーが表示されます</div>
         <div class="menu-sections">
+            <button type="button" onclick="showMenu('omakase')">MINTお任せセット</button>
             <button type="button" onclick="showMenu('female')">コラーゲンカラー</button>
             <button type="button" onclick="showMenu('whitening')">プレックスカラー</button>
             <button type="button" onclick="showMenu('male')">スタンダードカラー</button>
+            <button type="button" onclick="showMenu('genchi')">メニューを現地で決めたい方</button>
         </div>
 
         <div id="treatment-text" style="display: none; margin-bottom: 10px;"></div>
@@ -906,6 +913,36 @@
             </div>
         </div>
 
+        <div id="omakase" class="menu-section">
+            <div class="highlight-background">
+                <span class="highlight-text">◆MINTお任せセットはこちら◆</span>
+            </div>
+            <div class="symptoms">
+                <button type="button" onclick="selectSymptom(this, 'treatment11')" data-price="0">髪を傷めたくない人必見！スペシャルケアセット</button>
+                <div class="info-textmemo">髪に優しいケアカラー＋アルカリ除去＋専門店の潤いツヤトリートメント</div>
+            </div>
+            <div class="highlight-background">
+                <span class="highlight-text">染める範囲をお選びください</span>
+            </div>
+            <div class="irradiations">
+                <button type="button" onclick="selectirradiations(this)" data-price="5280">根元染め2cm以内</button>
+                <div class="info-textmemo">料金：5280円(税込)</div>
+                <button type="button" onclick="selectirradiations(this)" data-price="5940">根元染め2cm以上〜肩上までの範囲</button>
+                <div class="info-textmemo">料金：5940円(税込)</div>
+                <button type="button" onclick="selectirradiations(this)" data-price="6600">全体染めロング(肩より下までの範囲)</button>
+                <div class="info-textmemo">料金：6600円(税込)</div>
+            </div>
+        </div>
+
+        <div id="genchi" class="menu-section">
+            <div class="highlight-background">
+                <span class="highlight-text">◆メニューを現地で決めたい方はこちら◆</span>
+            </div>
+            <div class="symptoms">
+                <button type="button" onclick="selectSymptom(this, 'treatment12')" data-price="0">メニューを現地で決める方はこちらを選択してください</button>
+            </div>
+        </div>
+
         <div class="label">希望日時<span class="required">必須</span></div>
         <div class="calendar-container">
             <!-- 月を独立して配置 -->
@@ -950,8 +987,8 @@
             </div>
         </div>
 
-        <div class="label">メッセージ<br>（質問等お気軽にご記入ください）</div>
-        <textarea id="message" rows="4" placeholder="メッセージを入力してください"></textarea>
+        <div class="label">質問または商品購入をご希望される方は商品名をご記入ください</div>
+        <textarea id="message" rows="4" placeholder="質問または商品名をご記入ください"></textarea>
 
         <div class="label">ご予約内容</div>
         <div id="displayInfo"></div> <!-- ここに選択された情報を表示します -->
@@ -986,8 +1023,9 @@
 
         // 訪問回数ごとの時間設定 (例：初めて=20分、2回目以降=15分)
         let visitTimes = {
-            '1回目': 0,
-            '2回目以降': 0
+            '初回': 0,
+            '2回目': 0,
+            '3回目以降': 0
         };
 
         let selectedVisitTime = 0; // 訪問回数で選択された時間
@@ -998,7 +1036,10 @@
             'プレックス（前・後処理付）': 0,
             'コラーゲン（前処理付）': 0,
             'カラーケアトリートメント': 0,
-            '頭皮保護ガード': 0
+            '頭皮保護ガード': 0,
+            '根元染め2cm以内': 0,
+            '根元染め2cm以上〜肩上までの範囲': 0,
+            '全体染めロング(肩より下までの範囲)': 0
         };
 
         let selectedirradiationsTime = 0; // 訪問回数で選択された時間
@@ -1013,7 +1054,9 @@
             'コラーゲンカラー全体染め ロング': 1,
             'プレックスカラー根元染め': 1,
             'プレックスカラー全体染め': 1,
-            'プレックスカラー全体染め ロング': 1
+            'プレックスカラー全体染め ロング': 1,
+            '髪を傷めたくない人必見！スペシャルケアセット': 1,
+            'メニューを現地で決める方はこちらを選択してください': 1
         };
 
         let selectedMenuTime = 0;
@@ -1080,7 +1123,16 @@ if (savedGender) {
             let minutes = totalMinutes % 60;
             let totalTimeText = `<span style="color:#00b08b;"><strong>【所要時間】</strong></span><br>・${hours > 0 ? hours + '時間' : ''}${minutes}分`;
 
-            const totalAmountText = `<span style="color:#00b08b;"><strong>【合計金額】</strong></span><br>・¥${menuPrice + optionsPrice}`;
+            const isGenchi = selectedSymptom && selectedSymptom.length > 0 && selectedSymptom[0] === 'メニューを現地で決める方はこちらを選択してください';
+            let totalAmountText;
+            if (isGenchi) {
+                totalAmountText = `<span style="color:#00b08b;"><strong>【合計金額】</strong></span><br>・現地で選択されたメニューにより変動します`;
+            } else {
+                const totalPrice = menuPrice + optionsPrice;
+                const taxExcluded = Math.round(totalPrice / 1.1);
+                const tax = totalPrice - taxExcluded;
+                totalAmountText = `<span style="color:#00b08b;"><strong>【合計金額】</strong></span><br>・¥${totalPrice}（税込）<br>　（税抜 ¥${taxExcluded} ＋ 税 ¥${tax}）`;
+            }
             const selectedDateText = selectedFullDate ? `<span style="color:#00b08b;"><strong>【希望日時】</strong></span><br>・${selectedFullDate}` : '・日時が未選択です';
 
             // 修正ボタン付きのHTMLを作成
@@ -1229,6 +1281,10 @@ if (savedGender) {
                 treatmentText.innerHTML = `<div style="text-align: left;">（根元2cm以上～肩上まで）</div><div style="text-align: right;"><strong>料金：3960円</strong></div>`;
             } else if (treatmentId === 'treatment10') {
                 treatmentText.innerHTML = `<div style="text-align: left;">（根元2cm以上～肩下まで）</div><div style="text-align: right;"><strong>料金：4620円</strong></div>`;
+            } else if (treatmentId === 'treatment11') {
+                treatmentText.innerHTML = `<div style="text-align: left;">髪に優しいケアカラー＋アルカリ除去＋専門店の潤いツヤトリートメント</div><div style="text-align: left; font-size:0.85em; color:#888;">※染める範囲は下のボタンからお選びください</div>`;
+            } else if (treatmentId === 'treatment12') {
+                treatmentText.innerHTML = `<div style="text-align: left;">メニューは現地にてお選びいただけます</div>`;
             } else {
                 treatmentText.innerHTML = '';
             }
@@ -1251,6 +1307,15 @@ if (savedGender) {
         function selectirradiations(button) {
             // 選択された日時をリセット
             selectedFullDate = '';
+
+            // omakaseセクション内の場合は単一選択にする
+            const isOmakase = button.closest('#omakase') !== null;
+            if (isOmakase) {
+                const omakaseButtons = document.querySelectorAll('#omakase .irradiations button');
+                omakaseButtons.forEach(btn => {
+                    if (btn !== button) btn.classList.remove('active');
+                });
+            }
 
             // ボタンの選択状態を切り替える
             button.classList.toggle('active');
@@ -1295,6 +1360,7 @@ if (savedGender) {
             selectedFullDate = '';
 
             document.getElementById('firstVisit').classList.remove('active');
+            document.getElementById('secondVisit').classList.remove('active');
             document.getElementById('repeatVisit').classList.remove('active');
             element.classList.add('active');
             visitCount = element.innerText;
@@ -1573,14 +1639,6 @@ for (let i = 0; i < 7; i++) {
             continue;
         }
 
-        // 30日後以降は✕にする
-        const limitDate = new Date(now);
-        limitDate.setDate(limitDate.getDate() + 30);
-        if (slotStart > limitDate) {
-            cell.textContent = '✕';
-            cell.classList.add('unavailable');
-            continue;
-        }
 
         const isBusinessDay = businessDays.some(businessDay => {
             const businessDayStart = new Date(businessDay.start);
