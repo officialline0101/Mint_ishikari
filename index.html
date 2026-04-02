@@ -800,6 +800,48 @@
     }
 }
 
+.policy-container {
+    margin: 20px auto;
+    padding: 15px;
+    background-color: #f8f9fa; /* 柔らかいグレー */
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 90%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.policy-text {
+    font-size: 15px;
+    color: #333; /* メニューに合わせた黒字 */
+    font-weight: bold;
+    margin-bottom: 12px;
+    text-align: left;
+    display: inline-block;
+    line-height: 1.5;
+}
+
+.policy-agreement {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.policy-agreement input[type="checkbox"] {
+    transform: scale(1.5);
+    margin-right: 10px;
+    cursor: pointer;
+}
+
     </style>
 </head>
 
@@ -991,6 +1033,17 @@
 
         <div class="label">ご予約内容</div>
         <div id="displayInfo"></div> <!-- ここに選択された情報を表示します -->
+
+        <div class="policy-container">
+            <div class="policy-text">
+                ●予約日時の変更または、<br>
+                キャンセルは予約日前日の17時迄<br>
+                ●当日無断キャンセル料100%
+            </div>
+            <label class="policy-agreement">
+                <input type="checkbox" id="agreePolicy"> 同意する
+            </label>
+        </div>
 
         <button class="submit-button" onclick="submitForm()" div id="section-message">予約を行う</button>
     </div>
@@ -1463,6 +1516,12 @@ if (savedGender) {
                 dates: selectedFullDate ? [selectedFullDate] : null, // 空チェック
                 message: document.getElementById('message').value.trim()
             };
+
+            const isAgreed = document.getElementById('agreePolicy').checked;
+            if (!isAgreed) {
+                alert('キャンセルポリシーに同意してください。');
+                return;
+            }
 
             // フォームデータのチェック
             if (!formData.name) {
