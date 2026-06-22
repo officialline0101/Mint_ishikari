@@ -1611,12 +1611,10 @@ if (savedGender) {
             const table = calendar.querySelector('table tbody');
 
             const times = [
-                '09:00', '09:20',
-                '10:20', '10:40', '11:20', '11:40',
-                '12:00', '12:20',
-                '13:00', '13:20', '14:20', '14:40',
-                '15:20', '15:40',
-                '16:00', '16:20'
+                '09:00', '09:20', '09:40', '10:00', '10:20', '10:40',
+                '11:00', '11:20', '11:40', '12:00', '12:20', '12:40',
+                '13:00', '13:20', '13:40', '14:00', '14:20', '14:40',
+                '15:00', '15:20', '15:40', '16:00', '16:20'
             ];
 
             if (table.rows.length === 0) {
@@ -1723,13 +1721,35 @@ for (let i = 0; i < 7; i++) {
             return acc;
         }, 0);
 
-                    // 営業日のイベント時間内に他のイベントがある場合
-                    if (isBusinessEventTime && count > 0) {
+                    // 新規追加時間（9:40・10:00・11:00・12:40・13:40・14:00・15:00）は1枠のみ
+                    // 既に予約が1件でも入っていれば✕にする（既存の他の時間は2枠のまま）
+                    const isOneSlotTime = ['09:40', '10:00', '11:00', '12:40', '13:40', '14:00', '15:00'].includes(times[j]);
+
+                    // 指定日は土曜日と同じ扱い（午後の枠も開放・16:20は3枠）
+                    const slotDateStr = `${slotStart.getFullYear()}-${String(slotStart.getMonth() + 1).padStart(2, '0')}-${String(slotStart.getDate()).padStart(2, '0')}`;
+                    const saturdayLikeDates = ['2026-06-24', '2026-07-21'];
+                    const isSaturdayLike = slotStart.getDay() === 6 || saturdayLikeDates.includes(slotDateStr);
+
+                    if (isOneSlotTime && count > 0) {
                         cell.textContent = '✕';
                         cell.classList.add('unavailable');
                     }
-                    // 土曜日以外のすべての曜日で15時20分は利用不可
-                    else if (slotStart.getHours() === 15 && slotStart.getMinutes() === 20 && slotStart.getDay() !== 6) {
+                    // 営業日のイベント時間内に他のイベントがある場合
+                    else if (isBusinessEventTime && count > 0) {
+                        cell.textContent = '✕';
+                        cell.classList.add('unavailable');
+                    }
+                    // 土曜日（および指定日）以外は15時20分を利用不可
+                    else if (slotStart.getHours() === 15 && slotStart.getMinutes() === 20 && !isSaturdayLike) {
+                        cell.textContent = '✕';
+                        cell.classList.add('unavailable');
+                    }
+                    // 平日（土曜・指定日以外）は13:40・14:00・15:00を利用不可（基本設定）
+                    else if (
+                        ((slotStart.getHours() === 13 && slotStart.getMinutes() === 40) ||
+                         (slotStart.getHours() === 14 && slotStart.getMinutes() === 0) ||
+                         (slotStart.getHours() === 15 && slotStart.getMinutes() === 0)) &&
+                        !isSaturdayLike) {
                         cell.textContent = '✕';
                         cell.classList.add('unavailable');
                     }
@@ -1747,6 +1767,16 @@ for (let i = 0; i < 7; i++) {
                     else if (businessEventTimes.length > 0) {
                         cell.textContent = '✕';
                         cell.classList.add('unavailable');
+                    }
+                    // 土曜日（および指定日）は16:20を3枠（同時刻に3件まで受付可）
+                    else if (isSaturdayLike && slotStart.getHours() === 16 && slotStart.getMinutes() === 20) {
+                        if (count <= 2) {
+                            cell.textContent = '◯';
+                            cell.classList.add('available');
+                        } else {
+                            cell.textContent = '✕';
+                            cell.classList.add('unavailable');
+                        }
                     }
                     // 営業日でかつ他のイベントがない場合
                     else if (isBusinessDay && count === 0) {
