@@ -1727,7 +1727,7 @@ for (let i = 0; i < 7; i++) {
 
                     // 指定日は土曜日と同じ扱い（午後の枠も開放・16:20は3枠）
                     const slotDateStr = `${slotStart.getFullYear()}-${String(slotStart.getMonth() + 1).padStart(2, '0')}-${String(slotStart.getDate()).padStart(2, '0')}`;
-                    const saturdayLikeDates = ['2026-06-24', '2026-07-21'];
+                    const saturdayLikeDates = ['2026-06-24', '2026-07-21', '2026-08-05', '2026-08-10', '2026-08-12'];
                     const isSaturdayLike = slotStart.getDay() === 6 || saturdayLikeDates.includes(slotDateStr);
 
                     if (isOneSlotTime && count > 0) {
