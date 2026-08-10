@@ -1726,6 +1726,8 @@ for (let i = 0; i < 7; i++) {
                     // ※15:20は土曜・指定日のみ開放。開放日でも1枠のみ（15:00と同様）
                     const isOneSlotTime = ['09:40', '10:00', '11:00', '12:40', '13:40', '14:00', '15:00', '15:20'].includes(times[j]);
 
+                    // 毎週土曜日は曜日判定（getDay()===6）で恒久的に開放。期限なし・年をまたいでも自動継続。
+                    // saturdayLikeDates は「土曜以外で臨時に土曜と同じ扱いにする日」のみを列挙する。
                     // 指定日は土曜日と同じ扱い（午後の枠も開放・16:20は3枠）
                     const slotDateStr = `${slotStart.getFullYear()}-${String(slotStart.getMonth() + 1).padStart(2, '0')}-${String(slotStart.getDate()).padStart(2, '0')}`;
                     const saturdayLikeDates = ['2026-06-24', '2026-07-21', '2026-08-05', '2026-08-10', '2026-08-12'];
