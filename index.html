@@ -1733,7 +1733,18 @@ for (let i = 0; i < 7; i++) {
                     const saturdayLikeDates = ['2026-06-24', '2026-07-21', '2026-08-05', '2026-08-10', '2026-08-12'];
                     const isSaturdayLike = slotStart.getDay() === 6 || saturdayLikeDates.includes(slotDateStr);
 
-                    if (isOneSlotTime && count > 0) {
+                    // 受付不可日：スタッフ2名体制の日のため、下記の時間帯を予約不可（✕）にする（16:20は対象外＝通常どおり開放）
+                    // 追加・削除はこの2つの配列のみ編集すればよい
+                    const closedReceptionDates = ['2026-09-01', '2026-09-03', '2026-09-04', '2026-09-07', '2026-09-09', '2026-09-28', '2026-09-29', '2026-09-30'];
+                    const closedReceptionTimes = ['09:40', '10:00', '11:00', '11:20', '12:20', '12:40', '13:40', '14:00', '15:00', '15:20'];
+                    const isClosedReception = closedReceptionDates.includes(slotDateStr) && closedReceptionTimes.includes(times[j]);
+
+                    // 受付不可日は最優先で✕（予約の有無に関係なく閉じる）
+                    if (isClosedReception) {
+                        cell.textContent = '✕';
+                        cell.classList.add('unavailable');
+                    }
+                    else if (isOneSlotTime && count > 0) {
                         cell.textContent = '✕';
                         cell.classList.add('unavailable');
                     }
