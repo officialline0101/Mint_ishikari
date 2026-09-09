@@ -1735,14 +1735,8 @@ for (let i = 0; i < 7; i++) {
                     const oneSlotOverrides = {
                         '2026-08-28': ['10:20']
                     };
-                    // 日付ごとに「1枠→2枠」へ変更する時間帯（該当日は通常の2枠扱い＝2件目まで◯）
-                    // 例：2026-09-12（土）の 12:20・14:00 を 1枠から2枠へ変更
-                    const twoSlotOverrides = {
-                        '2026-09-12': ['12:20', '14:00']
-                    };
-                    const isTwoSlotOverride = (twoSlotOverrides[slotDateStr] || []).includes(times[j]);
-                    const isOneSlotTime = !isTwoSlotOverride && (isBaseOneSlotTime ||
-                        ((oneSlotOverrides[slotDateStr] || []).includes(times[j])));
+                    const isOneSlotTime = isBaseOneSlotTime ||
+                        ((oneSlotOverrides[slotDateStr] || []).includes(times[j]));
 
                     const saturdayLikeDates = ['2026-06-24', '2026-07-21', '2026-08-05', '2026-08-10', '2026-08-12'];
                     const isSaturdayLike = slotStart.getDay() === 6 || saturdayLikeDates.includes(slotDateStr);
