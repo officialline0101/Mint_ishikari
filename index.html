@@ -1751,7 +1751,13 @@ for (let i = 0; i < 7; i++) {
                     // 追加・削除はこの2つの配列のみ編集すればよい
                     const closedReceptionDates = ['2026-09-01', '2026-09-03', '2026-09-04', '2026-09-07', '2026-09-09', '2026-09-28', '2026-09-29', '2026-09-30', '2026-10-05', '2026-10-07', '2026-10-08', '2026-10-15', '2026-10-16', '2026-10-19', '2026-10-20', '2026-10-21', '2026-10-22', '2026-10-23', '2026-10-26', '2026-10-27', '2026-10-28'];
                     const closedReceptionTimes = ['09:40', '10:00', '11:00', '11:20', '12:20', '12:40', '13:40', '14:00', '15:00', '15:20'];
-                    const isClosedReception = closedReceptionDates.includes(slotDateStr) && closedReceptionTimes.includes(times[j]);
+                    // 受付不可日のうち、日付ごとに開放（0枠→1枠）する時間帯
+                    // 例：2026-09-28 の 12:20・12:40 を開放（1枠＝予約が1件入れば✕）
+                    const reopenOverrides = {
+                        '2026-09-28': ['12:20', '12:40']
+                    };
+                    const isReopened = (reopenOverrides[slotDateStr] || []).includes(times[j]);
+                    const isClosedReception = !isReopened && closedReceptionDates.includes(slotDateStr) && closedReceptionTimes.includes(times[j]);
 
                     // 受付不可日は最優先で✕（予約の有無に関係なく閉じる）
                     if (isClosedReception) {
