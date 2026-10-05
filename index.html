@@ -1064,6 +1064,65 @@
         let selectedFullDate = '';
         let currentDate = new Date();
         let availabilityCache = {};
+
+        // ===== 予約枠の設定 =====
+        // 枠数は各店舗のLINE予約用GAS（管理ページ）で設定し、ここではそれを読み込むだけにする。
+        // 予約フォームの○×とGASの予約確定処理が同じ設定を使うので、枠数をHTMLに直書きしないこと。
+        // ↓石狩店のLINE予約用GAS（doPost/doGetがあるプロジェクト）のウェブアプリURL（/exec で終わるもの）
+        const SLOT_CONFIG_URL = '★ここに石狩店のLINE予約用GASのURLを入れる★';
+        const SLOT_TIMES = [
+            '09:00', '09:20', '09:40', '10:00', '10:20', '10:40',
+            '11:00', '11:20', '11:40', '12:00', '12:20', '12:40',
+            '13:00', '13:20', '13:40', '14:00', '14:20', '14:40',
+            '15:00', '15:20', '15:40', '16:00', '16:20'
+        ];
+        // 設定を取得できなかったときだけ使う予備の設定（曜日ごとの基本のみ）。
+        // ここが実際と違っていても、GAS側で枠数を確認してから予約を確定するので枠を超えることはない。
+        let slotConfig = (function () {
+            const oneSlotTimes = ['09:40', '10:00', '11:00', '11:20', '12:20', '12:40', '13:40', '14:00', '15:00', '15:20'];
+            const weekdayClosedTimes = ['13:40', '14:00', '15:00', '15:20'];
+            const toPattern = fn => SLOT_TIMES.map(fn).join('');
+            const weekday = toPattern(t => weekdayClosedTimes.includes(t) ? 0 : (oneSlotTimes.includes(t) ? 1 : 2));
+            const saturday = toPattern(t => t === '16:20' ? 3 : (oneSlotTimes.includes(t) ? 1 : 2));
+            const sunday = toPattern(() => 0);
+            return { times: SLOT_TIMES, weekly: [sunday, weekday, weekday, weekday, weekday, weekday, saturday], dates: {} };
+        })();
+
+        async function loadSlotConfig() {
+            if (!SLOT_CONFIG_URL.startsWith('https://')) {
+                console.warn('SLOT_CONFIG_URL が未設定のため、予備の枠設定を使います');
+                return;
+            }
+            try {
+                const response = await fetch(SLOT_CONFIG_URL + '?action=slotConfig');
+                const data = await response.json();
+                if (data && Array.isArray(data.weekly) && data.dates) {
+                    slotConfig = data;
+                }
+            } catch (error) {
+                console.error('枠設定の取得に失敗しました', error);
+            }
+        }
+        const slotConfigReady = loadSlotConfig();
+
+        // 指定日時の枠数を求める（GASの resolveSlotCapacity と同じ判定）
+        // 優先順位：日付ごとの設定 ＞ カレンダーの「営業日」予定 ＞ 曜日ごとの基本設定
+        function resolveSlotCapacity(config, dateStr, dayOfWeek, time, hasBusinessEvent, inBusinessEvent) {
+            const index = config.times.indexOf(time);
+            if (index < 0) {
+                return 0;
+            }
+            const datePattern = config.dates[dateStr];
+            if (datePattern) {
+                return Number(datePattern.charAt(index)) || 0;
+            }
+            // 「営業日」の予定がある日は、その時間内のみ1枠（従来どおり）
+            if (hasBusinessEvent) {
+                return inBusinessEvent ? 1 : 0;
+            }
+            return Number(config.weekly[dayOfWeek].charAt(index)) || 0;
+        }
+
         let irradiationsCount = ''; <!-- 選択された症状を格納する変数 -->
         let totalAmount = 0; // 合計金額を格納する変数
         let menuPrice = 0; // メニューの価格
@@ -1565,6 +1624,9 @@ if (savedGender) {
         }
 
         async function fetchAvailability(date) {
+            // 枠設定の読み込みが終わってから○×を表示する
+            await slotConfigReady;
+
             const startTime = new Date(date);
             const endTime = new Date(date);
             endTime.setDate(endTime.getDate() + 7);
@@ -1721,104 +1783,12 @@ for (let i = 0; i < 7; i++) {
             return acc;
         }, 0);
 
-                    // 1枠のみの時間（9:40・10:00・11:00・11:20・12:20・12:40・13:40・14:00・15:00・15:20）
-                    // 既に予約が1件でも入っていれば✕にする（既存の他の時間は2枠のまま）
-                    // ※15:20は土曜・指定日のみ開放。開放日でも1枠のみ（15:00と同様）
-                    const isBaseOneSlotTime = ['09:40', '10:00', '11:00', '11:20', '12:20', '12:40', '13:40', '14:00', '15:00', '15:20'].includes(times[j]);
-
-                    // 毎週土曜日は曜日判定（getDay()===6）で恒久的に開放。期限なし・年をまたいでも自動継続。
-                    // saturdayLikeDates は「土曜以外で臨時に土曜と同じ扱いにする日」のみを列挙する。
-                    // 指定日は土曜日と同じ扱い（午後の枠も開放・16:20は3枠）
+                    // 枠数は管理ページの設定から求める（GASの予約確定処理と同じ判定）
                     const slotDateStr = `${slotStart.getFullYear()}-${String(slotStart.getMonth() + 1).padStart(2, '0')}-${String(slotStart.getDate()).padStart(2, '0')}`;
-                    // 日付ごとに「2枠→1枠」へ変更する時間帯（該当日は予約が1件でも入れば✕）
-                    // 例：2026-08-28 の 10:20 を 2枠から1枠へ変更
-                    const oneSlotOverrides = {
-                        '2026-08-28': ['10:20']
-                    };
-                    // 日付ごとに「1枠→2枠」へ変更する時間帯（該当日は通常の2枠扱い＝2件目まで◯）
-                    // 例：2026-09-12（土）の 12:20・14:00 を 1枠から2枠へ変更
-                    const twoSlotOverrides = {
-                        '2026-09-12': ['12:20', '14:00']
-                    };
-                    const isTwoSlotOverride = (twoSlotOverrides[slotDateStr] || []).includes(times[j]);
-                    const isOneSlotTime = !isTwoSlotOverride && (isBaseOneSlotTime ||
-                        ((oneSlotOverrides[slotDateStr] || []).includes(times[j])));
+                    const capacity = resolveSlotCapacity(slotConfig, slotDateStr, slotStart.getDay(), times[j],
+                        businessEventTimes.length > 0, isBusinessEventTime);
 
-                    const saturdayLikeDates = ['2026-06-24', '2026-07-21', '2026-08-05', '2026-08-10', '2026-08-12'];
-                    const isSaturdayLike = slotStart.getDay() === 6 || saturdayLikeDates.includes(slotDateStr);
-
-                    // 受付不可日：スタッフ2名体制の日のため、下記の時間帯を予約不可（✕）にする（16:20は対象外＝通常どおり開放）
-                    // 追加・削除はこの2つの配列のみ編集すればよい
-                    const closedReceptionDates = ['2026-09-01', '2026-09-03', '2026-09-04', '2026-09-07', '2026-09-09', '2026-09-28', '2026-09-29', '2026-09-30', '2026-10-05', '2026-10-07', '2026-10-08', '2026-10-15', '2026-10-16', '2026-10-19', '2026-10-20', '2026-10-21', '2026-10-22', '2026-10-23', '2026-10-26', '2026-10-27', '2026-10-28'];
-                    const closedReceptionTimes = ['09:40', '10:00', '11:00', '11:20', '12:20', '12:40', '13:40', '14:00', '15:00', '15:20'];
-                    // 受付不可日のうち、日付ごとに開放（0枠→1枠）する時間帯
-                    // 例：2026-09-28 の 12:20・12:40 を開放（1枠＝予約が1件入れば✕）
-                    const reopenOverrides = {
-                        '2026-09-28': ['12:20', '12:40']
-                    };
-                    const isReopened = (reopenOverrides[slotDateStr] || []).includes(times[j]);
-                    const isClosedReception = !isReopened && closedReceptionDates.includes(slotDateStr) && closedReceptionTimes.includes(times[j]);
-
-                    // 受付不可日は最優先で✕（予約の有無に関係なく閉じる）
-                    if (isClosedReception) {
-                        cell.textContent = '✕';
-                        cell.classList.add('unavailable');
-                    }
-                    else if (isOneSlotTime && count > 0) {
-                        cell.textContent = '✕';
-                        cell.classList.add('unavailable');
-                    }
-                    // 営業日のイベント時間内に他のイベントがある場合
-                    else if (isBusinessEventTime && count > 0) {
-                        cell.textContent = '✕';
-                        cell.classList.add('unavailable');
-                    }
-                    // 土曜日（および指定日）以外は15時20分を利用不可
-                    else if (slotStart.getHours() === 15 && slotStart.getMinutes() === 20 && !isSaturdayLike) {
-                        cell.textContent = '✕';
-                        cell.classList.add('unavailable');
-                    }
-                    // 平日（土曜・指定日以外）は13:40・14:00・15:00を利用不可（基本設定）
-                    else if (
-                        ((slotStart.getHours() === 13 && slotStart.getMinutes() === 40) ||
-                         (slotStart.getHours() === 14 && slotStart.getMinutes() === 0) ||
-                         (slotStart.getHours() === 15 && slotStart.getMinutes() === 0)) &&
-                        !isSaturdayLike) {
-                        cell.textContent = '✕';
-                        cell.classList.add('unavailable');
-                    }
-                    // 休日（日曜日）で、ビジネスデーでない場合
-                    else if (slotStart.getDay() === 0 && !isBusinessDay && businessEventTimes.length === 0) {
-                        cell.textContent = '✕'; // 休日のため利用不可
-                        cell.classList.add('unavailable'); // 利用不可スタイルを適用
-                    }
-                    // 営業日のイベント時間（他のイベントがない場合）
-                    else if (isBusinessEventTime) {
-                        cell.textContent = '◯';
-                        cell.classList.add('available');
-                    }
-                    // 営業日で、指定されている時間以外の時間は×
-                    else if (businessEventTimes.length > 0) {
-                        cell.textContent = '✕';
-                        cell.classList.add('unavailable');
-                    }
-                    // 土曜日（および指定日）は16:20を3枠（同時刻に3件まで受付可）
-                    else if (isSaturdayLike && slotStart.getHours() === 16 && slotStart.getMinutes() === 20) {
-                        if (count <= 2) {
-                            cell.textContent = '◯';
-                            cell.classList.add('available');
-                        } else {
-                            cell.textContent = '✕';
-                            cell.classList.add('unavailable');
-                        }
-                    }
-                    // 営業日でかつ他のイベントがない場合
-                    else if (isBusinessDay && count === 0) {
-                        cell.textContent = '◯';
-                        cell.classList.add('available');
-                    }
-                    // それ以外の条件
-                    else if (count <= 1) {
+                    if (count < capacity) {
                         cell.textContent = '◯';
                         cell.classList.add('available');
                     } else {
