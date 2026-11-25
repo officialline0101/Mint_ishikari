@@ -1831,6 +1831,8 @@ if (savedGender) {
 
 // 現在の日時を取得
 const now = new Date();
+const limitDate = new Date();
+limitDate.setDate(now.getDate() + 30); // 今日から30日後
 
 // テーブルの内容を更新
 for (let i = 0; i < 7; i++) {
@@ -1868,6 +1870,13 @@ for (let i = 0; i < 7; i++) {
 
         // 終了時間が翌日 (0時以降) になる場合は✕に設定
         if (slotEnd.getDate() !== slotStart.getDate()) {
+            cell.textContent = '✕';
+            cell.classList.add('unavailable');
+            continue;
+        }
+
+        // 30日後以降は✕に設定（新琴似店と同じ制限）
+        if (slotStart > limitDate) {
             cell.textContent = '✕';
             cell.classList.add('unavailable');
             continue;
